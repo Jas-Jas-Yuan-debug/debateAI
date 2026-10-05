@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only
+     Copyright (C) 2026 Jas-Jas-Yuan-debug and contributors. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f3ee">
+  <title>The Chamber · AI Debate</title>
+  <link rel="stylesheet" href="/styles.css?v=20261005-streaming">
+  <script src="/app.js?v=20261005-streaming" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="/" class="brand" aria-label="The Chamber home"><span class="brand-icon">C</span><span>The Chamber<span class="brand-sub">AI DEBATE ARENA</span></span></a>
+    <div class="topbar-right"><span class="protocol">British Parliamentary</span><button class="health" id="health-button" type="button"><span class="status-dot"></span><span id="health-label">Checking connection</span></button></div>
+  </header>
+  <main class="shell">
+    <div class="page-heading"><div><p class="eyebrow">YOUR MODELS. FOUR TEAMS. FIVE JUDGES.</p><h1>Let the arguments meet.</h1><p class="intro">A complete parliamentary round, from the chief judge’s motion to the panel’s verdict.</p></div><div class="model-signature"><span>Owner view</span><span class="versus">/</span><span>AI participants blind</span></div></div>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <div class="workspace">
+      <aside class="sidebar">
+        <section class="panel setup-panel" aria-labelledby="setup-title">
+          <div class="section-heading"><span class="eyebrow">NEW ROUND</span><span class="small-number">01—08</span></div>
+          <h2 id="setup-title">Set the chamber</h2>
+          <p class="setup-note" id="setup-note">Choose each team and judge’s model. You can see every assignment.</p>
+          <form id="setup-form">
+            <label for="language">Speech language</label>
+            <select id="language" name="language"><option value="en">English</option><option value="zh">中文</option></select>
+            <label for="all-effort">Apply effort to all</label>
+            <select id="all-effort" aria-describedby="effort-note"><option value="auto">Auto (service default)</option></select>
+            <p class="field-note" id="effort-note">Applies to all four teams and five judges in the next round. Higher effort may take longer. Your model gateway determines supported levels; unsupported settings return an error.</p>
+            <label for="chief">Chief adjudicator</label>
+            <select id="chief" name="chiefJudgeId"><option value="J4">J4 · GPT-6 Astra</option><option value="J1">J1 · GPT-6.1 Sol</option><option value="J2">J2 · GPT-6.1 Sol</option><option value="J3">J3 · GPT-6.1 Sol</option><option value="J5">J5 · GPT-6 Astra</option></select>
+            <p class="field-note">Chooses the final motion and resolves any remaining tie.</p>
+            <div class="model-tools"><span id="models-status" role="status">Loading debate models…</span><button id="refresh-models" type="button">Refresh models</button></div>
+            <fieldset class="model-group"><legend>Team models</legend><div id="team-models" class="model-fields"></div></fieldset>
+            <fieldset class="model-group"><legend>Judge models</legend><div id="judge-models" class="model-fields"></div></fieldset>
+            <p class="field-note model-policy">Models come from your configured API. Image and other non-chat models are omitted.</p>
+            <label for="pace">Round length</label>
+            <select id="pace" name="pace"><option value="standard">Standard · full-length default</option><option value="quick">Quick · shorter default</option></select>
+            <p class="field-note">Accelerated simulation of seven-minute speeches, with protected opening and closing minutes. You can adjust the target below.</p>
+            <label id="target-length-label" for="target-length">Target words per speech</label>
+            <input type="number" id="target-length" name="targetLength" min="100" max="3000" step="1" value="950" inputmode="numeric" required aria-describedby="target-length-note target-length-range">
+            <p class="field-note" id="target-length-note">Approximate target; actual count appears with each speech. Chinese is counted in characters.</p>
+            <p class="field-note" id="target-length-range">100–3,000 words per speech.</p>
+            <label for="topic">Topic hint <span class="optional">optional</span></label>
+            <textarea id="topic" name="topicHint" rows="3" placeholder="For example, technology and education…" maxlength="1000"></textarea>
+            <p class="field-note">The chief judge has the final say on the motion.</p>
+            <button class="primary" id="start-button" type="submit"><span>Start debate</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="session-actions"><button id="resume-button" type="button" hidden>Resume round</button><button id="cancel-button" class="danger-button" type="button" hidden>Cancel round</button></div>
+        </section>
+        <section class="panel history-panel" aria-labelledby="history-title"><div class="section-heading"><h2 id="history-title">Recent rounds</h2><button id="refresh-history" class="icon-button" type="button" aria-label="Refresh recent rounds">↻</button></div><div id="history"><p class="empty-small">Your rounds will appear here. Saved rounds survive a refresh.</p></div></section>
+        <p class="sidebar-note">Four teams · two speakers each<br>Five independent rankings · one winner<br>AI participants receive no model identity mapping. You can see all assignments.</p>
+      </aside>
+      <div class="main-column">
+        <section class="motion-card" aria-labelledby="motion-title"><div class="motion-top"><span class="eyebrow">THE MOTION</span><span id="run-status" class="run-status">Ready to begin</span></div><h2 id="motion-title">The floor is waiting.</h2><p id="motion-placeholder">Start a round. The chief adjudicator will set a balanced motion for all four teams.</p><p id="motion-chief" class="motion-chief">Chief: J4 · GPT-6 Astra · English · Standard</p><div id="info-slide" class="motion-info" hidden></div><details id="motion-rationale" hidden><summary>Why this motion?</summary><p></p></details><div class="motion-bottom"><span id="progress-label">Eight speeches. Five ballots. A reasoned verdict.</span><span id="progress-count">0 / 8 speeches</span></div><div class="progress-track" aria-hidden="true"><div id="progress-fill"></div></div></section>
+        <section id="activity-panel" class="panel activity-panel" aria-labelledby="activity-title" hidden><div class="section-heading"><h2 id="activity-title">Round activity</h2><span id="activity-state" class="activity-state"></span></div><p id="activity-summary" class="activity-summary" role="status"></p><p id="queue-summary" class="queue-summary"></p><div id="request-list" class="request-list"></div><details id="recent-activity" open><summary>Recent activity</summary><ol id="activity-log" class="activity-log"></ol></details></section>
+        <section aria-labelledby="benches-title" class="benches-section"><div class="section-heading"><h2 id="benches-title">The four teams</h2><span class="section-note">Government / Opposition</span></div><p id="blind-label" class="field-note">AI PARTICIPANTS BLIND · ALL MODEL ASSIGNMENTS VISIBLE TO YOU</p><div id="teams" class="teams"></div></section>
+        <section class="panel transcript-panel" aria-labelledby="transcript-title"><div class="transcript-heading"><div><p class="eyebrow">THE DEBATE</p><h2 id="transcript-title">Arguments, in order.</h2></div><label class="follow-toggle"><input type="checkbox" id="follow-live" checked>Follow live</label></div><div class="transcript-layout"><nav id="speaker-list" class="speaker-list" aria-label="Speeches"></nav><article id="speech-detail" class="speech-detail" aria-live="polite" aria-atomic="false"></article></div></section>
+        <section class="judging-section" aria-labelledby="judging-title"><div class="section-heading"><div><p class="eyebrow">THE ADJUDICATION</p><h2 id="judging-title">Five perspectives. One decision.</h2></div><span id="ballot-count" class="section-note">0 / 5 ballots</span></div><div id="judges" class="judges"></div><div id="verdict" class="verdict" hidden></div><p class="judging-note">Custom panel voting rule: all five judges independently rank the four teams. First-place votes lead; ties use summed BP points (3 / 2 / 1 / 0), then the chief’s ranking among tied teams. Standard BP panels normally deliberate together.</p></section>
+        <footer class="workspace-footer"><span id="run-meta">Your debate stays on this computer.</span><div class="export-actions"><a id="export-md" href="#" hidden>Export Markdown ↗</a><a id="export-json" href="#" hidden>Export JSON ↗</a></div></footer>
+      </div>
+    </div>
+    <footer class="project-footer"><span>© 2026 Jas-Jas-Yuan-debug and contributors · No warranty</span><div><a href="https://github.com/Jas-Jas-Yuan-debug/debateAI" target="_blank" rel="noopener noreferrer">Source code</a><a href="https://github.com/Jas-Jas-Yuan-debug/debateAI/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">AGPL-3.0 license</a></div></footer>
+  </main>
+</body>
+</html>

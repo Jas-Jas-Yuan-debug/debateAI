@@ -1,0 +1,22 @@
+{
+  "name": "debate-ai-chamber",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local British Parliamentary debate with selectable API models and five independent judges.",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jas-Jas-Yuan-debug/debateAI.git"
+  },
+  "homepage": "https://github.com/Jas-Jas-Yuan-debug/debateAI#readme",
+  "bugs": {
+    "url": "https://github.com/Jas-Jas-Yuan-debug/debateAI/issues"
+  },
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

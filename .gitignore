@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+data/
+exports/
+node_modules/
+.runtime/
+.DS_Store
+*.log
+coverage/
+*.tmp
+*.swp
+*~
