@@ -67,5 +67,12 @@
 .speech-explanation.stopped{background:#fbede4;color:#925945}
 @media(max-width:520px){.activity-panel{padding:18px 20px}.activity-panel .section-heading{align-items:flex-start}.activity-panel h2{font-size:14px}.activity-log li{grid-template-columns:minmax(0,1fr);gap:1px}.speech-status{max-width:95px;font-size:8px}.speaker-button{min-width:142px}}
 @media(max-width:800px){.history-panel{display:block}}
+.owner-panel{max-width:640px;padding:28px}
+.owner-panel h2{margin-bottom:12px}
+.owner-panel p{color:var(--muted);line-height:1.8;margin-bottom:18px}
+.owner-panel details{font-size:12px}
+.owner-panel form{margin-top:15px}
+.owner-panel input{width:100%;background:#fbfaf6;border:1px solid var(--line);border-radius:7px;padding:10px 11px}
+.owner-panel button{background:var(--ink);color:white;border:0;border-radius:7px;padding:10px 16px;margin-top:12px}
 .streaming-note{font-size:10px;letter-spacing:.4px;color:var(--green);padding:9px 0 16px}
 .project-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:28px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:10px}.project-footer>div{display:flex;gap:16px}.project-footer a:hover{text-decoration:underline}

@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (C) 2026 Jas-Jas-Yuan-debug and contributors.
 'use strict';
+import { connectLiveEvents } from './live-events.js';
 const $ = id => document.getElementById(id);
+const bootstrap = document.querySelector('meta[name="operator-token"]');
+let operatorToken = bootstrap?.content || '';
+try { operatorToken ||= sessionStorage.getItem('chamber-owner-token') || ''; if (operatorToken) sessionStorage.setItem('chamber-owner-token', operatorToken); } catch { /* The private access file can unlock each visit. */ }
+if (bootstrap) { bootstrap.remove(); window.history.replaceState(null, '', '/'); }
+if (!/^[a-f0-9]{64}$/.test(operatorToken)) operatorToken = '';
 const activeStatuses = new Set(['motion', 'preparation', 'debating', 'judging']);
 let config, current, history = [], source, selected = 'S1', busy = false, online = false, speechKey = '', speakerKey = '', judgeKey = '', historyBusy = false, modelsBusy = false, availableModels = [], lengthCustomized = false, streamFrame = null;
 const node = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; return el; };
@@ -64,10 +70,18 @@ const viewSpeeches = () => (current?.speeches || config?.speakers || []).map(pre
 const date = value => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 function notice(message = '') { $('notice').textContent = message; $('notice').hidden = !message; }
 async function api(url, options) {
-  const response = await fetch(url, options);
+  const headers = new Headers(options?.headers); headers.set('Authorization', `Bearer ${operatorToken}`);
+  const response = await fetch(url, { ...options, headers, credentials: 'omit', cache: 'no-store' });
   const value = await response.json();
+  if (response.status === 401) lockBrowser('This server restarted. Open Start Debate.command to unlock this browser again.');
   if (!response.ok) throw new Error(value.error || `Request failed (${response.status}).`);
   return value;
+}
+function lockBrowser(message = '') {
+  source?.close(); operatorToken = ''; history = [];
+  try { sessionStorage.removeItem('chamber-owner-token'); } catch { /* Optional. */ }
+  $('owner-panel').hidden = false; $('workspace').hidden = true;
+  $('health-button').disabled = true; $('health-label').textContent = 'Browser locked'; notice(message);
 }
 const post = (url, value = {}) => api(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
 const requestActive = request => ['waiting', 'retrying'].includes(request.status);
@@ -389,9 +403,15 @@ function render(run) {
 async function selectRun(run) {
   source?.close(); selected = 'S1'; speechKey = ''; speakerKey = ''; judgeKey = ''; notice(); render(run);
   try { localStorage.setItem('chamber-round', run.id); } catch { /* Browser storage is optional. */ }
-  source = new EventSource(`/api/runs/${run.id}/events`);
-  source.addEventListener('state', event => { try { render(JSON.parse(event.data)); } catch { notice('A live update could not be displayed. Refresh the round to reconnect.'); } });
-  source.addEventListener('delta', event => {
+  const state = event => {
+    try {
+      const snapshot = JSON.parse(event.data);
+      if (!current || current.id !== run.id || snapshot.id !== run.id) return;
+      if (Date.parse(snapshot.updatedAt) < Date.parse(current.updatedAt)) return;
+      render(snapshot);
+    } catch { notice('A live update could not be displayed. Refresh the round to reconnect.'); }
+  };
+  const delta = event => {
     try {
       const packet = JSON.parse(event.data);
       if (!current || packet.runId !== current.id) return;
@@ -407,8 +427,13 @@ async function selectRun(run) {
         if (current.status === 'judging') renderJudges();
       });
     } catch { notice('A streaming update could not be displayed. Reconnect to recover the saved draft.'); }
+  };
+  source = connectLiveEvents(`/api/runs/${run.id}/events`, {
+    headers: { Authorization: `Bearer ${operatorToken}` },
+    onEvent: (name, event) => { if (name === 'state') state(event); if (name === 'delta') delta(event); },
+    onError: () => { if (activeStatuses.has(current?.status)) $('progress-label').textContent = 'Reconnecting live updates…'; },
+    onUnauthorized: () => lockBrowser('This server restarted. Open Start Debate.command to unlock this browser again.'),
   });
-  source.onerror = () => { if (activeStatuses.has(current?.status)) $('progress-label').textContent = 'Reconnecting live updates…'; };
 }
 async function refreshHistory() {
   if (historyBusy) return;
@@ -459,15 +484,37 @@ $('follow-live').addEventListener('change', () => render(current));
 window.addEventListener('pagehide', () => source?.close());
 setInterval(() => { if (activeStatuses.has(current?.status)) renderRequestTimers(); }, 1000);
 setInterval(() => { if (history.some(run => activeStatuses.has(run.status))) refreshHistory(); }, 20000);
-(async () => {
+async function initialize() {
+  if (!operatorToken) { lockBrowser(); return; }
   try {
     config = await api('/api/config');
     availableModels = [...new Set((config.models || ['gpt-6.1-sol', 'gpt-6-astra']).map(model => typeof model === 'string' ? model : model.id).filter(Boolean))];
     for (const id of ['language', 'chief', 'pace']) if (config.defaults?.[id === 'chief' ? 'chiefJudgeId' : id]) $(id).value = config.defaults[id === 'chief' ? 'chiefJudgeId' : id];
     syncTargetLength(); populateModelFields(); render(null);
     await Promise.all([health(), refreshHistory(), refreshModels()]);
+    if (!operatorToken) return;
     let saved; try { saved = localStorage.getItem('chamber-round'); } catch { /* Optional. */ }
     const latest = history.find(r => activeStatuses.has(r.status)) || history.find(r => r.id === saved) || history[0];
     if (latest) await selectRun(await api(`/api/runs/${latest.id}`));
+    $('owner-panel').hidden = true; $('workspace').hidden = false; $('health-button').disabled = false;
   } catch (error) { notice(error.message); controls(); }
-})();
+}
+$('owner-form').addEventListener('submit', async event => {
+  event.preventDefault(); if (!$('owner-form').reportValidity()) return;
+  operatorToken = $('owner-code').value; $('owner-code').value = '';
+  try { await post('/api/session', { operatorToken }); try { sessionStorage.setItem('chamber-owner-token', operatorToken); } catch { /* Optional. */ } notice(); await initialize(); }
+  catch (error) { lockBrowser(error.message); }
+});
+for (const [id, format] of [['export-md', 'md'], ['export-json', 'json']]) $(id).addEventListener('click', async event => {
+  event.preventDefault(); if (!current) return;
+  const runId = current.id;
+  try {
+    const response = await fetch(`/api/runs/${runId}/export?format=${format}`, { headers: { Authorization: `Bearer ${operatorToken}` }, credentials: 'omit', cache: 'no-store' });
+    if (response.status === 401) { lockBrowser('Open Start Debate.command to unlock this browser again.'); return; }
+    if (!response.ok) throw new Error('The transcript could not be exported.');
+    const url = URL.createObjectURL(await response.blob()), link = node('a');
+    link.href = url; link.download = `debate-${runId}.${format}`; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) { notice(error.message); }
+});
+initialize();

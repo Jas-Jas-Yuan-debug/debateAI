@@ -7,8 +7,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f5f3ee">
   <title>The Chamber · AI Debate</title>
-  <link rel="stylesheet" href="/styles.css?v=20261005-streaming">
-  <script src="/app.js?v=20261005-streaming" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=20261011-owner">
+  <script src="/app.js?v=20261011-owner" type="module"></script>
 </head>
 <body>
   <header class="topbar">
@@ -18,7 +18,12 @@
   <main class="shell">
     <div class="page-heading"><div><p class="eyebrow">YOUR MODELS. FOUR TEAMS. FIVE JUDGES.</p><h1>Let the arguments meet.</h1><p class="intro">A complete parliamentary round, from the chief judge’s motion to the panel’s verdict.</p></div><div class="model-signature"><span>Owner view</span><span class="versus">/</span><span>AI participants blind</span></div></div>
     <div id="notice" class="notice" role="status" hidden></div>
-    <div class="workspace">
+    <section id="owner-panel" class="panel owner-panel" aria-labelledby="owner-title" hidden>
+      <h2 id="owner-title">Unlock your chamber</h2>
+      <p>Open <strong>Start Debate.command</strong>, or open the owner access file shown when the server starts.</p>
+      <details><summary>Enter an access code</summary><form id="owner-form"><label for="owner-code">Owner access code</label><input id="owner-code" type="password" autocomplete="off" minlength="64" maxlength="64" pattern="[a-f0-9]{64}" required><button type="submit">Unlock browser</button></form></details>
+    </section>
+    <div class="workspace" id="workspace">
       <aside class="sidebar">
         <section class="panel setup-panel" aria-labelledby="setup-title">
           <div class="section-heading"><span class="eyebrow">NEW ROUND</span><span class="small-number">01—08</span></div>
