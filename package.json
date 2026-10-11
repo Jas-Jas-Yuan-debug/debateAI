@@ -17,6 +17,8 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "node server.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "probe:streaming": "node scripts/probe-streaming.mjs",
+    "probe:responses": "node scripts/probe-responses.mjs"
   }
 }

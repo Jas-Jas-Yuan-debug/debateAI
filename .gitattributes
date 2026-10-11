@@ -1,0 +1,7 @@
+.env export-ignore
+.env.* export-ignore
+.env.example -export-ignore
+.runtime export-ignore
+data export-ignore
+exports export-ignore
+node_modules export-ignore
